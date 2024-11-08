@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block body_class %}no-footer{% endblock %}
+
+{% block title %}Dashboard - One-Auth.net{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/cfdash.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container">
+    <div class="dashboard">
+        <!-- Total Page Views -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-eye"></i>
+                <div>Total page views</div>
+            </div>
+            <div class="value">{{ total_stats['total_page_views'] }}</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #dfe6f7; color: #6a5acd;">
+                {% if percentage_change['page_views'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['page_views'] }} %
+                {% elif percentage_change['page_views'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['page_views'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart1" class="chart"></canvas>
+        </div>
+
+        <!-- Total Requests -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-server"></i>
+                <div>Total requests</div>
+            </div>
+            <div class="value">{{ total_stats['total_requests'] }}</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #e5f8f7; color: #2f9e9b;">
+                {% if percentage_change['requests'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['requests'] }} %
+                {% elif percentage_change['requests'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['requests'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart2" class="chart"></canvas>
+        </div>
+
+        <!-- Bandwidth Used -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-network-wired"></i>
+                <div>Bandwidth used</div>
+            </div>
+            <div class="value">{{ total_stats['total_bandwidth_used'] }} MB</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #f0f7fd; color: #5a9dc9;">
+                {% if percentage_change['bandwidth_used'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['bandwidth_used'] }} %
+                {% elif percentage_change['bandwidth_used'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['bandwidth_used'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart3" class="chart"></canvas>
+        </div>
+
+        <!-- Threats Blocked -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-shield-alt"></i>
+                <div>Threats blocked</div>
+            </div>
+            <div class="value">{{ total_stats['total_threats_blocked'] }}</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #fde7e3; color: #cc6e47;">
+                {% if percentage_change['threats_blocked'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['threats_blocked'] }} %
+                {% elif percentage_change['threats_blocked'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['threats_blocked'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart4" class="chart chart-square"></canvas> <!-- Added 'chart-square' class -->
+        </div>
+
+        <!-- Cached Requests -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-database"></i>
+                <div>Cached requests</div>
+            </div>
+            <div class="value">{{ total_stats['total_cached_requests'] }}</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #f2eaf3; color: #884ea0;">
+                {% if percentage_change['cached_requests'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['cached_requests'] }} %
+                {% elif percentage_change['cached_requests'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['cached_requests'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart5" class="chart"></canvas>
+        </div>
+
+        <!-- Cached Bandwidth -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-save"></i>
+                <div>Cached bandwidth</div>
+            </div>
+            <div class="value">{{ total_stats['total_cached_bandwidth'] }} MB</div>
+            <div class="small">30 days</div>
+            <div class="percentage" style="background-color: #ffd4d2; color: #cc4747;">
+                {% if percentage_change['cached_bandwidth'] > 0 %}
+                    <i class="fas fa-arrow-up"></i> {{ percentage_change['cached_bandwidth'] }} %
+                {% elif percentage_change['cached_bandwidth'] < 0 %}
+                    <i class="fas fa-arrow-down"></i> {{ percentage_change['cached_bandwidth'] }} %
+                {% else %}
+                    <i class="fas fa-equals"></i> No Change
+                {% endif %}
+            </div>
+            <canvas id="chart6" class="chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="system-stats-uptime-time-container">
+    <!-- Server Resource Usage Card -->
+    <div class="card system-stats-card">
+        <div class="recources-header">
+            <i class="fas fa-server"></i>
+            <div>Server Resource Usage</div>
+        </div>
+        <div class="system-stats">
+            <div class="stat-item">
+                <div class="stat-label">CPU Usage</div>
+                <div class="progress-bar-container">
+                    <div id="cpu-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="stat-value" id="cpu-usage">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">RAM Usage</div>
+                <div class="progress-bar-container">
+                    <div id="ram-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="stat-value" id="ram-usage">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Storage Usage</div>
+                <div class="progress-bar-container">
+                    <div id="storage-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="stat-value" id="storage-usage">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card uptime-monitor-card">
+        <div class="card-header">
+            <i class="fas fa-clock"></i>
+            <div>Server Uptime</div>
+        </div>
+        <div class="uptime-container">
+            <div class="uptime-value" id="uptime-days">0</div>
+            <div class="uptime-label">Days</div>
+            <div class="uptime-value" id="uptime-hours">0</div>
+            <div class="uptime-label">Hours</div>
+            <div class="uptime-value" id="uptime-minutes">0</div>
+            <div class="uptime-label">Minutes</div>
+        </div>
+    </div>
+
+    <div class="card server-time-card">
+        <div class="card-header">
+            <i class="fas fa-clock"></i>
+            <div>Current Server Time</div>
+        </div>
+        <div class="server-time-container">
+            <div id="server-time" class="server-time">00:00:00</div>
+            <div id="server-date" class="server-date">YYYY-MM-DD</div>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('admin_dashboard') }}" class="floating-logout-button">
+    <i class="fas fa-sign-out-alt"></i> Logout
+</a>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function createChart(ctx, labels, data, backgroundColor, borderColor, maintainAspectRatio = true) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 4 
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: maintainAspectRatio,
+                layout: {
+                    padding: {
+                        left: 5,
+                        right: 5,
+                        top: 5,
+                        bottom: 5
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'nearest',
+                        intersect: false,
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `Value: ${tooltipItem.raw}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const stats = {{ cloudflare_stats|tojson }};
+        const labels = stats.map(entry => entry.date);
+
+        createChart(document.getElementById('chart1'), labels, stats.map(entry => entry.page_views), 'rgba(106, 90, 205, 0.2)', '#6a5acd');
+        createChart(document.getElementById('chart2'), labels, stats.map(entry => entry.requests), 'rgba(47, 158, 155, 0.2)', '#2f9e9b');
+        createChart(document.getElementById('chart3'), labels, stats.map(entry => entry.bandwidth_used), 'rgba(90, 157, 201, 0.2)', '#5a9dc9');
+        
+        new Chart(document.getElementById('chart4'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: stats.map(entry => entry.threats_blocked),
+                    backgroundColor: 'rgba(204, 110, 71, 0.2)',
+                    borderColor: '#cc6e47',
+                    fill: true,
+                    tension: 0,
+                    stepped: true, 
+                    pointRadius: 0,
+                    borderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 5,
+                        right: 5,
+                        top: 5,
+                        bottom: 5
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'nearest',
+                        intersect: false,
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `Value: ${tooltipItem.raw}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        createChart(document.getElementById('chart5'), labels, stats.map(entry => entry.cached_requests), 'rgba(136, 78, 160, 0.2)', '#884ea0');
+        createChart(document.getElementById('chart6'), labels, stats.map(entry => entry.cached_bandwidth), 'rgba(204, 71, 71, 0.2)', '#cc4747');
+    });
+
+    function updateUptime() {
+        fetch('/admin/uptime')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('uptime-days').innerText = data.days;
+                document.getElementById('uptime-hours').innerText = data.hours;
+                document.getElementById('uptime-minutes').innerText = data.minutes;
+            })
+            .catch(error => console.error('Error fetching uptime:', error));
+    }
+
+    setInterval(updateUptime, 1000);
+
+    document.addEventListener('DOMContentLoaded', updateUptime);
+
+    function updateServerTime() {
+        fetch('/admin/server_time')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('server-time').innerText = data.time;
+                document.getElementById('server-date').innerText = data.date; 
+            })
+            .catch(error => console.error('Error fetching server time:', error));
+    }
+
+    setInterval(updateServerTime, 1000);
+
+    document.addEventListener('DOMContentLoaded', updateServerTime);
+
+    function updateSystemStats() {
+        fetch('/admin/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cpu-bar').style.width = data.cpu_usage + '%';
+                document.getElementById('cpu-usage').innerText = data.cpu_usage + '%';
+
+                document.getElementById('ram-bar').style.width = data.ram_usage + '%';
+                document.getElementById('ram-usage').innerText = data.ram_usage + '%';
+
+                document.getElementById('storage-bar').style.width = data.storage_usage + '%';
+                document.getElementById('storage-usage').innerText = data.storage_usage + '%';
+            })
+            .catch(error => console.error('Error fetching system stats:', error));
+    }
+
+    setInterval(updateSystemStats, 1000);
+
+    document.addEventListener('DOMContentLoaded', updateSystemStats);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const stats = {{ cloudflare_stats|tojson }};
+        const labels = stats.map(entry => entry.date);
+
+        createChart(document.getElementById('chart1'), labels, stats.map(entry => entry.page_views), 'rgba(106, 90, 205, 0.2)', '#6a5acd');
+        createChart(document.getElementById('chart2'), labels, stats.map(entry => entry.requests), 'rgba(47, 158, 155, 0.2)', '#2f9e9b');
+        createChart(document.getElementById('chart3'), labels, stats.map(entry => entry.bandwidth_used), 'rgba(90, 157, 201, 0.2)', '#5a9dc9');
+        createChart(document.getElementById('chart4'), labels, stats.map(entry => entry.threats_blocked), 'rgba(204, 110, 71, 0.2)', '#cc6e47', false);
+        createChart(document.getElementById('chart5'), labels, stats.map(entry => entry.cached_requests), 'rgba(136, 78, 160, 0.2)', '#884ea0');
+        createChart(document.getElementById('chart6'), labels, stats.map(entry => entry.cached_bandwidth), 'rgba(204, 71, 71, 0.2)', '#cc4747');
+    });
+</script>
+{% endblock %}

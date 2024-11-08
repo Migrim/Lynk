@@ -1,0 +1,422 @@
+body {
+    background-color: #ffffff; 
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.dark-mode body {
+    background-color: #181818;
+    color: #e4e4e4;
+}
+
+.dashboard-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 0;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 90%;
+    max-width: 1400px;
+}
+
+.card, .settings-container {
+    background-color: #F8F9FA; 
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: none;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #ddd; 
+}
+
+.dark-mode .card, .dark-mode .settings-container {
+    background-color: #1f1f1f;
+    box-shadow: none;
+    border: 1px solid #333;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: #555;
+}
+
+.dark-mode .card-header {
+    color: #ccc;
+}
+.card-header i {
+    font-size: 24px;
+}
+.card .value {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #333;
+}
+
+.dark-mode .card .value {
+    color: #e4e4e4;
+}
+
+.card .small {
+    font-size: 14px;
+    color: #777;
+    margin-top: -15px;
+}
+
+.dark-mode .card .small {
+    color: #aaa;
+}
+
+.card .percentage {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 20px;
+}
+
+.chart {
+    height: 100px;
+    width: 100%;
+    margin-top: 10px;
+    max-height: 100px;
+}
+
+canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.settings-container {
+    justify-content: center;
+    align-items: center;
+}
+
+.switch-label {
+    font-size: 16px;
+    color: #555;
+}
+
+.dark-mode .switch-label {
+    color: #ccc;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.dark-mode .slider {
+    background-color: #555;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+.dark-mode input:checked + .slider {
+    background-color: #42a1f5;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.maintenance-active {
+    border: 2px dashed #CC4747;
+    border-width: 2px;
+    border-style: dashed;
+    border-color: #CC4747;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.dark-mode .maintenance-active {
+    border-color: #ff6e47;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr; 
+        gap: 10px;
+    }
+
+    .card, .settings-container {
+        padding: 15px; 
+    }
+
+    .card .value {
+        font-size: 20px;
+    }
+
+    .card-header {
+        font-size: 14px;
+    }
+
+    .chart {
+        height: 80px;
+        margin-top: 8px;
+    }
+}
+.divider {
+    width: 100%;
+    height: 1px;
+    background-color: #e4e4e4;
+    margin: 50px 0;
+}
+
+.dark-mode .divider {
+    background-color: #333;
+}
+.system-stats-card {
+    max-width: 400px;  
+    margin: 0 auto; 
+}
+
+.system-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-item {
+    display: grid;
+    grid-template-columns: 120px 1fr 50px;
+    align-items: center;
+    gap: 10px; 
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #555;
+}
+
+.dark-mode .stat-label {
+    color: #ccc;
+}
+
+.progress-bar-container {
+    background-color: #e4e4e4;
+    border-radius: 10px;
+    height: 15px;
+    position: relative;
+    overflow: hidden;
+    width: 100%; 
+}
+
+.dark-mode .progress-bar-container {
+    background-color: #333;
+}
+
+.progress-bar {
+    background-color: #6a5acd;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.stat-value {
+    font-size: 16px;
+    color: #333;
+    text-align: right; 
+}
+
+.dark-mode .stat-value {
+    color: #e4e4e4;
+}
+
+.recources-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    padding-bottom: 5px;  
+    margin-bottom: 5px;   
+}
+.uptime-monitor-card {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.dark-mode .uptime-monitor-card {
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+}
+
+.uptime-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;  /* Ensures items are vertically centered */
+    height: 100px;  /* Set a consistent height for centering */
+}
+
+.uptime-value {
+    font-size: 2.5em;
+    color: #6a5acd;
+    transition: all 0.5s ease-in-out;
+    display: flex;
+    align-items: center;  /* Ensures the value is centered inside its container */
+}
+
+.uptime-label {
+    font-size: 1em;
+    color: #555;
+    display: flex;
+    align-items: center;  /* Ensures the label is centered inside its container */
+}
+
+.dark-mode .uptime-value {
+    color: #ccc;
+}
+
+.dark-mode .uptime-label {
+    color: #aaa;
+}
+.server-time-card {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.dark-mode .server-time-card {
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+}
+
+.server-time-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.server-time, .server-date {
+    font-size: 2.5em;
+    color: #6a5acd;
+    transition: all 0.5s ease-in-out;
+}
+
+.server-date {
+    font-size: 1.2em;
+    color: #555;
+    margin-top: 5px;
+}
+
+.dark-mode .server-time, .dark-mode .server-date {
+    color: #ccc;
+}
+
+.dark-mode .server-date {
+    color: #aaa;
+}
+
+.system-stats-uptime-time-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.system-stats-card, .uptime-monitor-card, .server-time-card {
+    flex: 1;
+    max-width: 30%;
+}
+
+@media (max-width: 768px) {
+    .system-stats-uptime-time-container {
+        flex-direction: column;
+    }
+    .system-stats-card, .uptime-monitor-card, .server-time-card {
+        max-width: 100%;
+    }
+}
+.floating-logout-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #6a5acd;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+}
+
+.floating-logout-button:hover {
+    background-color: #5a4fb8;
+}
+
+.floating-logout-button i {
+    margin-right: 8px;
+    font-size: 20px;
+}
