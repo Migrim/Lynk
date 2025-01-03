@@ -2,8 +2,8 @@ import requests
 from datetime import datetime, timedelta, timezone
 
 CLOUDFLARE_API_URL = "https://api.cloudflare.com/client/v4/graphql"
-ZONE_ID = "Ben" 
-API_TOKEN = "Yes"  
+ZONE_ID = "No" 
+API_TOKEN = "HoHoHo"  
 
 headers = {
     "Authorization": f"Bearer {API_TOKEN}",

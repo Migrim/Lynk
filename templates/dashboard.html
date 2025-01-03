@@ -196,9 +196,71 @@
     </div>
 </div>
 
-<a href="{{ url_for('admin_dashboard') }}" class="floating-logout-button">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
+<div class="divider"></div>
+
+<div class="crypto-dashboard-container">
+    <!-- Bitcoin -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fab fa-bitcoin"></i> <!-- Bitcoin icon -->
+            <div>BTC | Bitcoin</div>
+        </div>
+        <div class="value">{{ crypto_stats['current_btc_price'] }}</div>
+        <div class="small">7 days</div>
+        <div class="percentage" style="background-color: #fde7e3; color: #cc6e47;">
+            {% if crypto_percentage_change['btc_price'] > 0 %}
+                <i class="fas fa-arrow-up"></i> {{ crypto_percentage_change['btc_price'] }} %
+            {% elif crypto_percentage_change['btc_price'] < 0 %}
+                <i class="fas fa-arrow-down"></i> {{ crypto_percentage_change['btc_price'] }} %
+            {% else %}
+                <i class="fas fa-equals"></i> No Change
+            {% endif %}
+        </div>
+        <canvas id="chart-crypto-btc"></canvas>
+    </div>
+
+    <!-- Ethereum -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fab fa-ethereum"></i> <!-- Ethereum icon -->
+            <div>ETH | Ethereum</div>
+        </div>
+        <div class="value">{{ crypto_stats['current_eth_price'] }}</div>
+        <div class="small">7 days</div>
+        <div class="percentage" style="background-color: #f2eaf3; color: #884ea0;">
+            {% if crypto_percentage_change['eth_price'] > 0 %}
+                <i class="fas fa-arrow-up"></i> {{ crypto_percentage_change['eth_price'] }} %
+            {% elif crypto_percentage_change['eth_price'] < 0 %}
+                <i class="fas fa-arrow-down"></i> {{ crypto_percentage_change['eth_price'] }} %
+            {% else %}
+                <i class="fas fa-equals"></i> No Change
+            {% endif %}
+        </div>
+        <canvas id="chart-crypto-eth" class="chart"></canvas>
+    </div>
+
+    <!-- Solana -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-leaf"></i> <!-- Solana icon (Leaf as a modern symbol) -->
+            <div>SOL | Solana</div>
+        </div>
+        <div class="value">{{ crypto_stats['current_sol_price'] }}</div>
+        <div class="small">7 days</div>
+        <div class="percentage" style="background-color: #ffd4d2; color: #cc4747;">
+            {% if crypto_percentage_change['sol_price'] > 0 %}
+                <i class="fas fa-arrow-up"></i> {{ crypto_percentage_change['sol_price'] }} %
+            {% elif crypto_percentage_change['sol_price'] < 0 %}
+                <i class="fas fa-arrow-down"></i> {{ crypto_percentage_change['sol_price'] }} %
+            {% else %}
+                <i class="fas fa-equals"></i> No Change
+            {% endif %}
+        </div>
+        <canvas id="chart-crypto-sol" class="chart"></canvas>
+    </div>
+</div>
+
+<div class="spacer"></div>
 
 {% endblock %}
 
@@ -255,11 +317,20 @@
                         enabled: true,
                         mode: 'nearest',
                         intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+                        borderColor: 'transparent', 
+                        borderWidth: 0,
                         callbacks: {
-                            label: function(tooltipItem) {
-                                return `Value: ${tooltipItem.raw}`;
+                            title: function(tooltipItem) {
+                                return `Date: ${tooltipItem[0].label}`;
+                            },
+                            label: function(context) {
+                                let value = context.raw;
+                                return `Value: ${value.toLocaleString({ minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                             }
-                        }
+                        },
+                        displayColors: false,  
+                      
                     }
                 }
             }
@@ -324,11 +395,20 @@
                         enabled: true,
                         mode: 'nearest',
                         intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+                        borderColor: 'transparent', 
+                        borderWidth: 0,
                         callbacks: {
-                            label: function(tooltipItem) {
-                                return `Value: ${tooltipItem.raw}`;
+                            title: function(tooltipItem) {
+                                return `Date: ${tooltipItem[0].label}`;
+                            },
+                            label: function(context) {
+                                let value = context.raw;
+                                return `Blocked: ${value.toLocaleString({ minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                             }
-                        }
+                        },
+                        displayColors: false,  
+                      
                     }
                 }
             }
@@ -336,6 +416,107 @@
 
         createChart(document.getElementById('chart5'), labels, stats.map(entry => entry.cached_requests), 'rgba(136, 78, 160, 0.2)', '#884ea0');
         createChart(document.getElementById('chart6'), labels, stats.map(entry => entry.cached_bandwidth), 'rgba(204, 71, 71, 0.2)', '#cc4747');
+    });
+
+    function createChart(ctx, labels, data, backgroundColor, borderColor) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 5,
+                        right: 5,
+                        top: 5,
+                        bottom: 5
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'nearest',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        callbacks: {
+                            title: function(tooltipItem) {
+                                return `Date: ${tooltipItem[0].label}`;
+                            },
+                            label: function(context) {
+                                let value = context.raw;
+                                return `Price: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            }
+                        },
+                        displayColors: false
+                    }
+                }
+            }
+        });
+    }
+
+    async function renderCryptoChart(coinId, canvasId, backgroundColor, borderColor) {
+        try {
+            const response = await fetch(`/crypto/${coinId}/history`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch data for ${coinId}: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.length) {
+                console.error(`No data returned for ${coinId}`);
+                document.getElementById(canvasId).parentNode.querySelector('.value').innerText = 'No Data';
+                return;
+            }
+
+            const labels = data.map(item => new Date(item.timestamp).toLocaleDateString());
+            const prices = data.map(item => item.price);
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            createChart(ctx, labels, prices, backgroundColor, borderColor);
+        } catch (error) {
+            console.error(`Error fetching or rendering chart for ${coinId}:`, error);
+            document.getElementById(canvasId).parentNode.querySelector('.value').innerText = 'Error';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderCryptoChart('bitcoin', 'chart-crypto-btc', 'rgba(204, 110, 71, 0.2)', '#cc6e47');
+        renderCryptoChart('ethereum', 'chart-crypto-eth', 'rgba(136, 78, 160, 0.2)', '#884ea0');
+        renderCryptoChart('solana', 'chart-crypto-sol', 'rgba(204, 71, 71, 0.2)', '#cc4747');
     });
 
     function updateUptime() {

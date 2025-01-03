@@ -144,9 +144,7 @@
                 <button class="navbar-toggle" id="navbar-toggle">&#9776;</button>
             </div>
             <ul class="navbar-links" id="navbar-links">
-                <li><a href="{{ url_for('admin_dashboard') }}">OTP-Manager</a></li>
-                <li><a href="{{ url_for('admin_dashboard') }}">Startpage</a></li>
-                <li><a href="{{ url_for('admin_dashboard') }}">Projects</a></li>
+                <li><a href="javascript:void(0)" id="open-settings">Settings</a></li>
                 <button id="dark-mode-toggle" class="btn-toggle"></button>
             </ul>
         </nav>
@@ -259,6 +257,25 @@
             });
         });
 
+        document.getElementById('open-settings').addEventListener('click', async function () {
+            try {
+                const response = await fetch('/settings'); 
+                const modalContent = await response.text();
+
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalContent;
+                document.body.appendChild(modalContainer);
+
+                modalContainer.style.display = 'flex';
+
+                modalContainer.querySelector('.close-modal').addEventListener('click', function () {
+                    modalContainer.remove();
+                });
+            } catch (error) {
+                console.error('Failed to load settings modal:', error);
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', function () {
             const lightbox = document.createElement('div');
             lightbox.id = 'lightbox';

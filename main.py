@@ -1,7 +1,9 @@
 from flask import Flask, render_template, jsonify
 import time
 from datetime import datetime
+from cloudflare_api import get_cloudflare_stats  
 import psutil
+from crypto_prices import get_crypto_prices, get_historical_data
 
 app = Flask(__name__)
 app.config['SESSION_COOKIE_SECURE'] = True
@@ -21,54 +23,108 @@ def format_requests(number):
     else:
         return str(number)
 
+@app.route('/crypto/<coin_id>/history')
+def crypto_history(coin_id):
+    historical_data = get_historical_data(coin_id)
+    return jsonify(historical_data)
+
+@app.route('/admin/crypto')
+def admin_crypto():
+    data = get_crypto_prices()
+    return jsonify(data)
+
+@app.route('/settings')
+def settings_page():
+    return render_template('settings.html')
+
+def calculate_percentage_change(old_value, new_value):
+    if old_value == 0:
+        return 0
+    return round(((new_value - old_value) / old_value) * 100, 2)
+
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_dashboard():
-    # Placeholder for simulated server stats
-    server_stats = [
-        {'page_views': 200, 'requests': 150, 'bandwidth_used': 500.5, 'threats_blocked': 3,
-         'cached_requests': 100, 'cached_bandwidth': 300.25},
-        {'page_views': 250, 'requests': 180, 'bandwidth_used': 550.75, 'threats_blocked': 5,
-         'cached_requests': 120, 'cached_bandwidth': 350.50}
-    ]
+    crypto_stats = get_crypto_prices()
 
-    first_day = server_stats[0]
-    last_day = server_stats[-1]
-
-    percentage_change = {
-        'page_views': calculate_percentage_change(first_day['page_views'], last_day['page_views']),
-        'requests': calculate_percentage_change(first_day['requests'], last_day['requests']),
-        'bandwidth_used': calculate_percentage_change(first_day['bandwidth_used'], last_day['bandwidth_used']),
-        'threats_blocked': calculate_percentage_change(first_day['threats_blocked'], last_day['threats_blocked']),
-        'cached_requests': calculate_percentage_change(first_day['cached_requests'], last_day['cached_requests']),
-        'cached_bandwidth': calculate_percentage_change(first_day['cached_bandwidth'], last_day['cached_bandwidth'])
+    previous_prices = {
+        'btc_price': 50000,  
+        'eth_price': 4000,   
+        'sol_price': 100    
     }
 
-    total_stats = {
-        'total_page_views': format_requests(sum(entry['page_views'] for entry in server_stats)),
-        'total_requests': format_requests(sum(entry['requests'] for entry in server_stats)),
-        'total_bandwidth_used': round(sum(entry['bandwidth_used'] for entry in server_stats), 2),
-        'total_threats_blocked': sum(entry['threats_blocked'] for entry in server_stats),
-        'total_cached_requests': format_requests(sum(entry['cached_requests'] for entry in server_stats)),
-        'total_cached_bandwidth': round(sum(entry['cached_bandwidth'] for entry in server_stats), 2)
+    crypto_percentage_change = {
+        'btc_price': calculate_percentage_change(previous_prices['btc_price'], crypto_stats.get('current_btc_price', 0)),
+        'eth_price': calculate_percentage_change(previous_prices['eth_price'], crypto_stats.get('current_eth_price', 0)),
+        'sol_price': calculate_percentage_change(previous_prices['sol_price'], crypto_stats.get('current_sol_price', 0))
     }
 
-    system_stats = {
-        'cpu_usage': psutil.cpu_percent(),
-        'ram_usage': psutil.virtual_memory().percent,
-        'storage_usage': psutil.disk_usage('/').percent
-    }
+    cloudflare_stats = get_cloudflare_stats()
 
-    return render_template('dashboard.html', cloudflare_stats=server_stats, total_stats=total_stats, percentage_change=percentage_change, system_stats=system_stats)
+    if cloudflare_stats and len(cloudflare_stats) >= 2: 
+        yesterday = cloudflare_stats[-2] 
+        today = cloudflare_stats[-1] 
+
+        percentage_change = {
+            'page_views': calculate_percentage_change(yesterday['page_views'], today['page_views']),
+            'requests': calculate_percentage_change(yesterday['requests'], today['requests']),
+            'bandwidth_used': calculate_percentage_change(yesterday['bandwidth_used'], today['bandwidth_used']),
+            'threats_blocked': calculate_percentage_change(yesterday['threats_blocked'], today['threats_blocked']),
+            'cached_requests': calculate_percentage_change(yesterday['cached_requests'], today['cached_requests']),
+            'cached_bandwidth': calculate_percentage_change(yesterday['cached_bandwidth'], today['cached_bandwidth'])
+        }
+
+        total_stats = {
+            'total_page_views': format_requests(sum(entry['page_views'] for entry in cloudflare_stats)),
+            'total_requests': format_requests(sum(entry['requests'] for entry in cloudflare_stats)),
+            'total_bandwidth_used': round(sum(entry['bandwidth_used'] for entry in cloudflare_stats), 2),
+            'total_threats_blocked': sum(entry['threats_blocked'] for entry in cloudflare_stats),
+            'total_cached_requests': format_requests(sum(entry['cached_requests'] for entry in cloudflare_stats)),
+            'total_cached_bandwidth': round(sum(entry['cached_bandwidth'] for entry in cloudflare_stats), 2)
+        }
+
+        system_stats = {
+            'cpu_usage': psutil.cpu_percent(),
+            'ram_usage': psutil.virtual_memory().percent,
+            'storage_usage': psutil.disk_usage('/').percent
+        }
+
+        return render_template('dashboard.html', cloudflare_stats=cloudflare_stats, total_stats=total_stats, percentage_change=percentage_change, system_stats=system_stats, crypto_stats=crypto_stats, crypto_percentage_change=crypto_percentage_change)
+
+    else:
+        placeholder_stats = {
+            'total_page_views': 0,
+            'total_requests': 0,
+            'total_bandwidth_used': 0.00,
+            'total_threats_blocked': 0,
+            'total_cached_requests': 0,
+            'total_cached_bandwidth': 0.00
+        }
+        placeholder_change = {
+            'page_views': 0,
+            'requests': 0,
+            'bandwidth_used': 0,
+            'threats_blocked': 0,
+            'cached_requests': 0,
+            'cached_bandwidth': 0
+        }
+
+        system_stats = {
+            'cpu_usage': 0,
+            'ram_usage': 0,
+            'storage_usage': 0
+        }
+
+        return render_template('dashboard.html', cloudflare_stats=[placeholder_stats], total_stats=placeholder_stats, percentage_change=placeholder_change, system_stats=system_stats, crypto_stats=crypto_stats, crypto_percentage_change=crypto_percentage_change, error="Failed to retrieve Cloudflare data or insufficient data")
 
 @app.route('/admin/system_stats', methods=['GET'])
 def get_system_stats():
-    cpu_usage_per_core = psutil.cpu_percent(interval=1.5, percpu=True)  # Slightly longer interval for accuracy
-    cpu_usage = round(sum(cpu_usage_per_core) / len(cpu_usage_per_core), 1)  # Average and round to one decimal place
+    cpu_usage_per_core = psutil.cpu_percent(interval=1.5, percpu=True)  
+    cpu_usage = round(sum(cpu_usage_per_core) / len(cpu_usage_per_core), 1) 
 
     system_stats = {
-        'cpu_usage': f"{cpu_usage:.1f}",  # Format to 00.0%
-        'ram_usage': round(psutil.virtual_memory().percent, 1),  # Rounded to one decimal
-        'storage_usage': round(psutil.disk_usage('/').percent, 1)  # Rounded to one decimal
+        'cpu_usage': f"{cpu_usage:.1f}",  
+        'ram_usage': round(psutil.virtual_memory().percent, 1),  
+        'storage_usage': round(psutil.disk_usage('/').percent, 1)  
     }
     return jsonify(system_stats)
 
